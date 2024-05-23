@@ -10,7 +10,11 @@ public class Item {
         this.price = price;
     }
 
-    // Getters và setters
+    public Item() {
+		// TODO Auto-generated constructor stub
+	}
+
+	// Getters và setters
     public int getId() {
         return id;
     }
@@ -34,4 +38,11 @@ public class Item {
     public void setPrice(double price) {
         this.price = price;
     }
+
+	@Override
+	public String toString() {
+		return "Item [id=" + id + ", name=" + name + ", price=" + price + "]";
+	}
+    
+    
 }

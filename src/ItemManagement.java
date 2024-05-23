@@ -3,6 +3,8 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import javax.swing.JLabel;
@@ -11,6 +13,7 @@ import javax.swing.JOptionPane;
 import java.awt.Font;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -18,11 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class ItemManagement extends JFrame {
 
@@ -57,17 +63,18 @@ public class ItemManagement extends JFrame {
 		setTitle("Quản lý sản phẩm");
 		
 
-		String url ="jdbc:oracle:thin:@localhost:1521:lab5?user=c##vinh&password=p123456";
+		String url = "jdbc:oracle:thin:@localhost:1521:orcllab5";
+		String user = "c##lab5";
+		String password = "123456";
 		String driver = "oracle.jdbc.driver.OracleDriver";
-		try{
-		Class.forName(driver);
-		con = DriverManager.getConnection(url);
-		System.out.println("Connected to the database");
-
-		}catch(Exception e){
-		e.printStackTrace();
-
+		try {
+		    Class.forName(driver);
+		    con = DriverManager.getConnection(url, user, password);
+		    System.out.println("Connected to the database");
+		} catch (Exception e) {
+		    e.printStackTrace();
 		}
+
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 532, 513);
 		contentPane = new JPanel();
@@ -119,6 +126,7 @@ public class ItemManagement extends JFrame {
 		JButton btnAdd = new JButton("Thêm");
 		btnAdd.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
+		        // Lấy thông tin từ các trường nhập liệu
 		        String id = txtItemID.getText();
 		        String name = txtItemName.getText();
 		        double price = 0;
@@ -129,12 +137,21 @@ public class ItemManagement extends JFrame {
 		            JOptionPane.showMessageDialog(null, "Giá sản phẩm phải là một số.", "Lỗi", JOptionPane.ERROR_MESSAGE);
 		            return;
 		        }
+
 		        if (id.isEmpty() || name.isEmpty()) {
 		            JOptionPane.showMessageDialog(null, "Vui lòng nhập đủ thông tin sản phẩm.", "Lỗi", JOptionPane.ERROR_MESSAGE);
 		            return;
 		        }
 
 		        try {
+		            Statement checkStatement = con.createStatement();
+		            String checkSql = "SELECT * FROM item WHERE id = '" + id + "' OR name = '" + name + "'";
+		            ResultSet resultSet = checkStatement.executeQuery(checkSql);
+		            if (resultSet.next()) {
+		                JOptionPane.showMessageDialog(null, "Sản phẩm đã tồn tại trong cơ sở dữ liệu.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+		                return;
+		            }
+
 		            Statement statement = con.createStatement();
 		            String sql = "INSERT INTO item (id, name, price) VALUES ('" + id + "', '" + name + "', " + price + ")";
 		            int rowsAffected = statement.executeUpdate(sql);
@@ -157,6 +174,7 @@ public class ItemManagement extends JFrame {
 		        }
 		    }
 		});
+
 
 		btnAdd.setBounds(10, 11, 89, 38);
 		panel_2.add(btnAdd);
@@ -259,48 +277,75 @@ public class ItemManagement extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(10, 184, 496, 208);
 		contentPane.add(scrollPane);
-		
+
 		table = new JTable();
+		scrollPane.add(table);
+
+
 		scrollPane.setViewportView(table);
 		String[] columnNames = {"Mã sản phẩm", "Tên sản phẩm", "Giá"};
 		model.setColumnIdentifiers(columnNames);
-		searchData();
 		table.setModel(model);
 		searchData();
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				int row = table.getSelectedRow();
+				
+				txtItemID.setText(String.valueOf(table.getValueAt(row, 0)));
+				txtItemName.setText(String.valueOf(table.getValueAt(row, 1)));
+				txtPrice.setText(String.valueOf(table.getValueAt(row, 2)));
+			}
+		});
 
 
 	}
 	public void searchData() {
 	    List<Item> items = new ArrayList<Item>();
 	    try {
-	        Statement statement = con.createStatement();
-	        String sql = "SELECT * FROM item";
-	        ResultSet result = statement.executeQuery(sql);
-	        
-	        while (result.next()) {
-	            int id = result.getInt("id");
-	            String name = result.getString("name");
-	            double price = result.getDouble("price");
-
-	            Item item = new Item(id, name, price);
-	            items.add(item);
-	            System.out.println(result);
+	        if (con == null || con.isClosed()) {
+	            return;
 	        }
-	        System.out.print(items);
+
+	        String sql = "SELECT * FROM ITEM";
+	        Statement statement = con.createStatement();
+	        ResultSet result = statement.executeQuery(sql);
+
+	        if (!result.isBeforeFirst()) {
+	        }
+	        
+	        items.clear();
+	        while (result.next()) {
+	            int id = result.getInt("Id");
+	            String name = result.getString("Name");
+	            double price = result.getDouble("Price");
+	            
+	            Item item = new Item();
+	            
+	            item.setId(id);
+	            item.setName(name);
+	            item.setPrice(price);
+
+	           
+	            items.add(item);
+	            
+	        }
+	        System.out.println("Items: " + items);
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
-	   
-
+	    
 	    for (Item item : items) {
-	        Object[] o = new Object[4];
+	        Object[] o = new Object[3]; 
 	        o[0] = item.getId();
 	        o[1] = item.getName();
 	        o[2] = item.getPrice();
 	        model.addRow(o);
 	    }
-
 	}
+
+
 	
 
 
