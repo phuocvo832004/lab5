@@ -44,6 +44,7 @@ public class ItemManagement extends JFrame {
 			public void run() {
 				try {
 					ItemManagement frame = new ItemManagement();
+					frame.setLocationRelativeTo(null);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
