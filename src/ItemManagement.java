@@ -3,8 +3,6 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import javax.swing.JLabel;
@@ -13,7 +11,6 @@ import javax.swing.JOptionPane;
 import java.awt.Font;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JButton;
@@ -126,7 +122,6 @@ public class ItemManagement extends JFrame {
 		JButton btnAdd = new JButton("Thêm");
 		btnAdd.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		        // Lấy thông tin từ các trường nhập liệu
 		        String id = txtItemID.getText();
 		        String name = txtItemName.getText();
 		        double price = 0;
@@ -189,20 +184,27 @@ public class ItemManagement extends JFrame {
 		        }
 
 		        String id = table.getValueAt(selectedRow, 0).toString();
-
+		        
 		        try {
-		            Statement statement = con.createStatement();
-		            String sql = "DELETE FROM item WHERE id = '" + id + "'";
-		            int rowsAffected = statement.executeUpdate(sql);
-		            if (rowsAffected > 0) {
-		                DefaultTableModel model = (DefaultTableModel) table.getModel();
-		                model.removeRow(selectedRow);
-		                model.fireTableDataChanged();
-		                JOptionPane.showMessageDialog(null, "Xóa sản phẩm thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-		            } else {
-		                JOptionPane.showMessageDialog(null, "Xóa sản phẩm thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-		            }
-		            statement.close();
+		        	
+		        	int result = JOptionPane.showOptionDialog(null, "Xác nhận xóa sản phẩm?", "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+		        	if(result == JOptionPane.YES_OPTION) {
+		        		Statement statement = con.createStatement();
+			            String sql = "DELETE FROM item WHERE id = '" + id + "'";
+			            int rowsAffected = statement.executeUpdate(sql);
+			            if (rowsAffected > 0) {
+			                DefaultTableModel model = (DefaultTableModel) table.getModel();
+			                model.removeRow(selectedRow);
+			                model.fireTableDataChanged();
+			                JOptionPane.showMessageDialog(null, "Xóa sản phẩm thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+			            } else {
+			                JOptionPane.showMessageDialog(null, "Xóa sản phẩm thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+			            }
+			            statement.close();
+		        	}else {
+		        		dispose();
+		        	}
+		            
 		        } catch (SQLException ex) {
 		            ex.printStackTrace();
 		            JOptionPane.showMessageDialog(null, "Lỗi kết nối cơ sở dữ liệu.", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -241,16 +243,21 @@ public class ItemManagement extends JFrame {
 		        }
 
 		        try {
-		            Statement statement = con.createStatement();
-		            String sql = "UPDATE item SET name = '" + newName + "', price = " + newPrice + " WHERE id = '" + id + "'";
-		            int rowsAffected = statement.executeUpdate(sql);
-		            if (rowsAffected > 0) {
-		                DefaultTableModel model = (DefaultTableModel) table.getModel();
-		                model.setValueAt(newName, selectedRow, 1);
-		                model.setValueAt(newPrice, selectedRow, 2);
-		                model.fireTableDataChanged();
-		                JOptionPane.showMessageDialog(null, "Sửa sản phẩm thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-		            } else {
+		        	Statement statement = con.createStatement();
+		        	int result = JOptionPane.showOptionDialog(null, "Xác nhận thay đổi?", "Confirm Patch", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+		        	if(result == JOptionPane.YES_OPTION) {
+			            
+			            String sql = "UPDATE item SET name = '" + newName + "', price = " + newPrice + " WHERE id = '" + id + "'";
+			            int rowsAffected = statement.executeUpdate(sql);
+			            if (rowsAffected > 0) {
+			                DefaultTableModel model = (DefaultTableModel) table.getModel();
+			                model.setValueAt(newName, selectedRow, 1);
+			                model.setValueAt(newPrice, selectedRow, 2);
+			                model.fireTableDataChanged();
+			                JOptionPane.showMessageDialog(null, "Sửa sản phẩm thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
+		        	}}
+		             else {
 		                JOptionPane.showMessageDialog(null, "Sửa sản phẩm thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
 		            }
 		            statement.close();
