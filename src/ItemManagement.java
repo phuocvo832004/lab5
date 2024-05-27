@@ -204,7 +204,7 @@ public class ItemManagement extends JFrame {
 		        	}else {
 		        		dispose();
 		        	}
-		            
+		        	con.close();
 		        } catch (SQLException ex) {
 		            ex.printStackTrace();
 		            JOptionPane.showMessageDialog(null, "Lỗi kết nối cơ sở dữ liệu.", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -261,6 +261,7 @@ public class ItemManagement extends JFrame {
 		                JOptionPane.showMessageDialog(null, "Sửa sản phẩm thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
 		            }
 		            statement.close();
+		            con.close();
 		        } catch (SQLException ex) {
 		            ex.printStackTrace();
 		            JOptionPane.showMessageDialog(null, "Lỗi kết nối cơ sở dữ liệu.", "Lỗi", JOptionPane.ERROR_MESSAGE);
